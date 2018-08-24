@@ -1,5 +1,5 @@
 
-const speed = 0.1;
+const speed = 0.01;
 const window_width = 500;
 const window_height = 500;
 
@@ -55,14 +55,14 @@ function drawBox(lowerCoord, upperCoord, ps) {
 // line is executed again.
 function draw() {
     
-    background(0);   // Set the background to black
+    background(102);   // Set the background to black
     fill(102);
     
     var normXDiff = 2 * mouseX / window_width - 1;
     var normYDiff = 2 * mouseY / window_height - 1;
     var midY = window_height / 2;
     
-    posX -= normXDiff * speed * posX * posX;
+    posX -= normXDiff * speed;
     posY += normYDiff * speed;
 
     posX = max(posX, 0.01);
@@ -70,19 +70,21 @@ function draw() {
     posY = max(posY, 0);
     posY = min(posY, 1);
 
-    console.log(posX, posY);
+    //console.log(posX, posY);
     var ps = getProb(); // probabilities
     var ret = drawBox(
         window_height*(-posY*(1-posX)/posX),
         window_height*(1+((1-posY)*(1-posX)/posX)), 
         ps);
 
+    ellipse(window_width / 2, window_height / 2, 15, 15);
+    line(window_width / 2, window_height / 2, mouseX, mouseY);
+
     if (ret != null) {
         console.log(chars[ret[2]]);
         // compute posX and posY from upper and lower bounds
-
+        posX = window_height / (ret[1] - ret[0]);
+        posY = -ret[0] * posX / window_height / (1 - posX);
     }
 
-    ellipse(window_width / 2, window_height / 2, 15, 15);
-    line(window_width / 2, window_height / 2, mouseX, mouseY);
 }

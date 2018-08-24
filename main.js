@@ -6,6 +6,7 @@ var move = false;
 var zoom = 1;
 var posY = 0.5;
 var p_s;
+var p_s2;
 
 // The statements in the setup() function 
 // execute once when the program begins
@@ -14,11 +15,23 @@ function setup() {
     createCanvas(width, height);  
     stroke(255);     // Set line drawing color to white
     frameRate(60);
-    p_s = [0.3, 0.1, 0.2, 0.4];
+    p_s = [];
+    p_s2 = [];
     var sum = 0;
     for (var i = 0; i < 26; i++) {
         p_s[i] = random();
         sum += p_s[i];
+
+        var sum2 = 0;
+        p_s2[i] = [];
+        for (var j = 0; j < 26; j++) {
+            p_s2[i][j] = random();
+            sum2 += p_s2[i][j];
+        }
+
+        for (var j = 0; j < 26; j++) {
+            p_s2[i][j] /= sum2;
+        }
     }
 
     for (var i = 0; i < 26; i++) {
@@ -49,8 +62,8 @@ function draw() {
     // transX += normXDiff * width/10;
 
     if (move) {
-        zoom += normXDiff * speed;
-        posY += normYDiff * speed / zoom;
+        zoom += normXDiff * normXDiff * Math.sign(normXDiff) / speed;
+        posY += normYDiff * normYDiff * Math.sign(normYDiff) * speed / zoom;
     }
 
     posY = max(posY, 0);
@@ -76,6 +89,14 @@ function draw() {
         rect(x, y, size, size);
         prev += p;
     }
+}
+
+function transposeCoordinates(x1, y1, x2, y2, p1, p2, q1, q2, parent_weight) {
+    var relativeZoom = zoom*parent_weight;
+    // this is the zoom level of the parent box relative to the viewport
+    // it should be 1 if the parent box fills the screen exactly
+
+
 }
 
 function mousePressed() {

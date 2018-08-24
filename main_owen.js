@@ -1,11 +1,13 @@
 
-const speed = 0.01;
+const speed = 0.05;
 const window_width = 500;
 const window_height = 500;
 
 var posX = 1;
 var posY = 0.5;
 var zoom = 1;
+var bgColour = [0, 0, 0];
+var value = "";
 
 // The statements in the setup() function 
 // execute once when the program begins
@@ -14,6 +16,18 @@ function setup() {
     createCanvas(window_width, window_height);  
     stroke(255);     // Set line drawing color to white
     frameRate(60);
+}
+
+function drawMarker() {
+    line(window_width / 2, 0, window_width / 2, window_height);
+    line(window_width / 2 - 20, window_height / 2,
+        window_width / 2 + 20, window_height / 2);
+}
+
+function drawValue(v) {
+    fill(255)
+    textAlign(LEFT, CENTER);
+    text(v, 10, 10);
 }
 
 function getProb(prevString) {
@@ -26,27 +40,52 @@ function getChars() {
 
 var chars = getChars();
 
-function drawRect(lowerCoord, upperCoord) {
-    var sz = upperCoord - lowerCoord;
-    rect(width - sz, lowerCoord, sz, sz);
+function getColours(chs) {
+    var ret = [];
+    for (var i = 0; i < chs.length; i++) {
+        ret.push([
+            Math.random() * 120,
+            Math.random() * 120,
+            Math.random() * 120]);
+    }
+    return ret;
 }
 
-function drawBox(lowerCoord, upperCoord, ps) {
+var cols = getColours(chars);
+
+function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
+    var sz = upperCoord - lowerCoord;
+    fill(cl[0], cl[1], cl[2]);
+    rect(width - sz, lowerCoord, sz, sz);
+    if (width - sz < window_width / 2 && 
+        lowerCoord < window_height / 2 &&
+        window_height / 2 < lowerCoord + sz) {
+        listOfIntersecting.push([ch, lowerCoord, upperCoord, cl]);
+    }
+    if (sz > 100) {
+        fill(255);
+        textAlign(CENTER, CENTER);
+        text(ch, window_width - sz + 10, 
+            (upperCoord + lowerCoord) / 2);
+    }
+}
+
+var threshold = 0
+
+function drawBox(lowerCoord, upperCoord, ps, layer, listOfIntersecting) {
     var height = upperCoord - lowerCoord;
-    if (height < 50) return null;
-    var ret = null;
+    if (height < 50) return;
     var prev = 0;
     for (var i = 0; i < ps.length; i++) {
         var lc = lowerCoord + prev; // new lower coordinate
         var ln = ps[i] * height; // length
-        if (lc <= 0 && lc + ln >= window_height)
+        if (lc <= -threshold && lc + ln >= window_height + threshold)
             ret = [lc, lc + ln, i];
-        drawRect(lc, lc + ln);
+        drawRect(lc, lc + ln, chars[i], cols[i], listOfIntersecting);
         // compute nested list and recurse
-        drawBox(lc, lc + ln, getProb());
+        drawBox(lc, lc + ln, getProb(), listOfIntersecting);
         prev += ln;
     }
-    return ret;
 }
 
 // The statements in draw() are executed until the 
@@ -55,36 +94,46 @@ function drawBox(lowerCoord, upperCoord, ps) {
 // line is executed again.
 function draw() {
     
-    background(102);   // Set the background to black
-    fill(102);
+    background(bgColour[0], bgColour[1], bgColour[2]);
     
-    var normXDiff = 2 * mouseX / window_width - 1;
-    var normYDiff = 2 * mouseY / window_height - 1;
+    var normXDiff = mouseX / window_width - 0.5;
+    var normYDiff = mouseY / window_height - 0.5;
     var midY = window_height / 2;
     
-    posX -= normXDiff * speed;
+    posX -= normXDiff * speed * posX;
     posY += normYDiff * speed;
 
     posX = max(posX, 0.01);
     posX = min(posX, 1);
     posY = max(posY, 0);
     posY = min(posY, 1);
+    console.log(posX, posY);
 
-    //console.log(posX, posY);
     var ps = getProb(); // probabilities
-    var ret = drawBox(
+    var intersecting = [];
+    drawBox(
         window_height*(-posY*(1-posX)/posX),
         window_height*(1+((1-posY)*(1-posX)/posX)), 
-        ps);
+        ps, 0, intersecting);
 
     ellipse(window_width / 2, window_height / 2, 15, 15);
     line(window_width / 2, window_height / 2, mouseX, mouseY);
 
-    if (ret != null) {
-        console.log(chars[ret[2]]);
-        // compute posX and posY from upper and lower bounds
-        posX = window_height / (ret[1] - ret[0]);
-        posY = -ret[0] * posX / window_height / (1 - posX);
+    if (intersecting.length > 3) {
+        // move to new
+        value += intersecting[0][0];
+        bgColour = intersecting[0][3];
+        var lb = intersecting[0][1];
+        var ub = intersecting[0][2];
+        posX = window_height / (ub - lb);
+        posY = -lb * posX / window_height / (1 - posX);
+        intersecting.shift();
     }
+
+    drawMarker();
+    var value2 = value;
+    for (var i = 0; i < intersecting.length; i++)
+        value2 += intersecting[i][0];
+    drawValue(value2);
 
 }

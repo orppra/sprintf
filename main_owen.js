@@ -1,5 +1,6 @@
 
-const speed = 0.05;
+const speedX = 0.05;
+const speedY = 0.01;
 const window_width = 500;
 const window_height = 500;
 
@@ -27,7 +28,7 @@ function drawMarker() {
 function drawValue(v) {
     fill(255)
     textAlign(LEFT, CENTER);
-    text(v, 10, 10);
+    text(v, 5, 10);
 }
 
 function getProb(prevString) {
@@ -54,6 +55,8 @@ function getColours(chs) {
 var cols = getColours(chars);
 
 function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
+    if (upperCoord < 0 || lowerCoord > window_height) return;
+
     var sz = upperCoord - lowerCoord;
     fill(cl[0], cl[1], cl[2]);
     rect(width - sz, lowerCoord, sz, sz);
@@ -62,7 +65,7 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
         window_height / 2 < lowerCoord + sz) {
         listOfIntersecting.push([ch, lowerCoord, upperCoord, cl]);
     }
-    if (sz > 100) {
+    if (sz > 20) {
         fill(255);
         textAlign(CENTER, CENTER);
         text(ch, window_width - sz + 10, 
@@ -72,7 +75,9 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
 
 var threshold = 0
 
-function drawBox(lowerCoord, upperCoord, ps, layer, listOfIntersecting) {
+function drawBox(lowerCoord, upperCoord, ps, listOfIntersecting) {
+    if (upperCoord < 0 || lowerCoord > window_height) return;
+
     var height = upperCoord - lowerCoord;
     if (height < 50) return;
     var prev = 0;
@@ -100,26 +105,27 @@ function draw() {
     var normYDiff = mouseY / window_height - 0.5;
     var midY = window_height / 2;
     
-    posX -= normXDiff * speed * posX;
-    posY += normYDiff * speed;
+    posX -= normXDiff * speedX * posX;
+    posY += normYDiff * speedY;
 
-    posX = max(posX, 0.01);
+    posX = max(posX, 0.001);
     posX = min(posX, 1);
     posY = max(posY, 0);
     posY = min(posY, 1);
-    console.log(posX, posY);
+    //console.log(posX, posY);
 
     var ps = getProb(); // probabilities
     var intersecting = [];
     drawBox(
         window_height*(-posY*(1-posX)/posX),
         window_height*(1+((1-posY)*(1-posX)/posX)), 
-        ps, 0, intersecting);
+        ps, intersecting);
 
     ellipse(window_width / 2, window_height / 2, 15, 15);
     line(window_width / 2, window_height / 2, mouseX, mouseY);
-
-    if (intersecting.length > 3) {
+    //console.log(value, intersecting.length);
+    
+    if (intersecting.length > 4) {
         // move to new
         value += intersecting[0][0];
         bgColour = intersecting[0][3];

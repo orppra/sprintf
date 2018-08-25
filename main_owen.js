@@ -7,7 +7,7 @@ var height = Math.max( body.scrollHeight, body.offsetHeight,
                        html.clientHeight, html.scrollHeight, html.offsetHeight );
 const window_width = document.body.scrollWidth;
 const window_height = height;
-const rect_width_scale = 2;
+const rect_width_scale = 1.5;
 
 var pxScale = 1;
 
@@ -61,8 +61,6 @@ function drawMarker() {
 function drawValue(v) {
     fill(0);
     stroke(255);
-    v = v+v+v;
-    v= v+v.length;
     if (v.length <= 15)
         textSize(60);
     if (v.length <= 20)
@@ -161,7 +159,7 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
         textAlign(CENTER, CENTER);
         if (ch == ' ') 
             ch = '_';
-        text(ch, window_width - 3*rect_width_scale*sz/4, 
+        text(ch, window_width - rect_width_scale*sz - sz/2 + 30, 
             (upperCoord + lowerCoord) / 2);
     }
 }

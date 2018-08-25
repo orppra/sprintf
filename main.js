@@ -83,14 +83,45 @@ function drawValue(v) {
 
     fill(0);
     stroke(255);
-    if (v.length <= 15)
-        textSize(60);
+
+    function testWhite(x) {
+        var white = new RegExp(/^\s$/);
+        return white.test(x.charAt(0));
+    };
+    
+    function wordWrap(str, maxWidth) {
+        var newLineStr = "\n"; done = false; res = '';
+        do {                    
+            found = false;
+            // Inserts new line at first whitespace of the line
+            for (i = maxWidth - 1; i >= 0; i--) {
+                if (testWhite(str.charAt(i))) {
+                    res = res + [str.slice(0, i), newLineStr].join('');
+                    str = str.slice(i + 1);
+                    found = true;
+                    break;
+                }
+            }
+            // Inserts new line at maxWidth position, the word is too long to wrap
+            if (!found) {
+                res += [str.slice(0, maxWidth), newLineStr].join('');
+                str = str.slice(maxWidth);
+            }
+    
+            if (str.length < maxWidth)
+                done = true;
+        } while (!done);
+    
+        return res + str;
+    }
+    if (v.length > 35)
+        v = wordWrap(v, 35);
+    if (v.length <= 35)
+        textSize(30);
     if (v.length <= 20)
         textSize(50);
-    if (v.length <= 25)
-        textSize(48);
-    if (v.length <= 60)
-        textSize(40);
+    if (v.length <= 15)
+        textSize(60);
     textAlign(RIGHT);
     textStyle(BOLD);    
     text(v, width/2 - 30, height/2);

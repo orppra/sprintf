@@ -25,7 +25,7 @@ var before_length = 0;
 var keypressSound;
 
 fetch(
-    'https://raw.githubusercontent.com/orppra/nushhacks/master/nextchar/precomputed.json'
+    'https://raw.githubusercontent.com/orppra/sprintf/master/nextchar/precomputed.json'
     //'http://localhost:5000/'
 ).then(function(response){
     return response.json();

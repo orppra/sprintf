@@ -25,7 +25,8 @@ var before_length = 0;
 var keypressSound;
 
 fetch(
-    'http://localhost:5000/'
+    'https://raw.githubusercontent.com/orppra/nushhacks/master/nextchar/precomputed.json'
+    //'http://localhost:5000/'
 ).then(function(response){
     return response.json();
 }).then(function(data){
@@ -47,6 +48,7 @@ function preload() {
     soundFormats('mp3', 'ogg');
     keypressSound = loadSound('keypress.mp3');
 }
+
 // The statements in the setup() function 
 // execute once when the program begins
 function setup() {

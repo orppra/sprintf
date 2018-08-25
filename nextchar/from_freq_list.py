@@ -13,25 +13,31 @@ damping_const = 0.75
 threshold = 100
 
 
-def build_tree(value, inc, depth, tree):
+# tree contains priority: next character prediction
+# tree contains children: if search forward another character
+def build_tree(nxtChar, value, inc, depth, tree):
     if depth >= 4:
         return
+    if nxtChar not in tree['priority']:
+        tree['priority'][nxtChar] = 0
+    tree['priority'][nxtChar] += inc
+    tree['sum_priority'] += inc
     if value == '':
         return
-    if value[-1] not in tree:
-        tree[value[-1]] = dict(priority=0, children={})
-    tree[value[-1]]['priority'] += inc
-    build_tree(value[:-1], inc * damping_const,
-               depth + 1, tree[value[-1]]['children'])
+    if value[-1] not in tree['children']:
+        tree['children'][value[-1]] = dict(
+            priority={}, children={}, sum_priority=0)
+    build_tree(nxtChar, value[:-1], inc * damping_const,
+               depth + 1, tree['children'][value[-1]])
 
 
 def process_word(word, freq, result):
-    # print(word, freq)
     word_copy = word + ' '
-    while word_copy != '':
-        build_tree(word_copy, freq, 0, result)
+    while len(word_copy) >= 2:
+        build_tree(
+            word_copy[-1], word_copy[:-2],
+            freq, 0, result[word_copy[-2]])
         word_copy = word_copy[:-1]
-        freq *= damping_const
 
 
 def get_data(result):
@@ -59,21 +65,18 @@ def predict(past, tree):
     while (past != '' and
             past[-1] != ' ' and
             past[-1] in mTree['children'] and
-            mTree['priority'] > threshold and
-            mTree['children'][past[-1]]['children'] != {}):
-        # print(past[-1])
+            mTree['sum_priority'] > threshold and
+            mTree['children'][past[-1]]['sum_priority'] != 0):
         mTree = mTree['children'][past[-1]]
         past = past[:-1]
 
-    print(mTree['children'])
-
     result = {}
     for c in allCharList:
-        result[c] = mTree['priority'] / 100
+        result[c] = mTree['sum_priority'] / 100
 
-    for k, v in mTree['children'].items():
+    for k, v in mTree['priority'].items():
         if k in result:
-            result[k] += v['priority']
+            result[k] += v
 
     # for k in result:
     #     result[k] = min(50, result[k])
@@ -93,8 +96,13 @@ def predict(past, tree):
 
 r = {}
 for c in allCharList:
-    r[c] = {'priority': 0, 'children': {}}
+    r[c] = {'priority': {}, 'children': {}, 'sum_priority': 0}
 get_data(r)
+
+predict('q', r)
+predict('hell', r)
+predict('morn', r)
+
 
 app = Flask('Server')
 CORS(app)

@@ -11,7 +11,7 @@ const window_width = document.body.scrollWidth;
 const window_height = height;
 const rect_width_scale = 1.5;
 
-var pxScale = 1;
+var pxScale = 10000;
 
 var posX = 1 * pxScale;
 var posY = 0.5;
@@ -71,8 +71,9 @@ function drawValue(v) {
         textSize(48);
     if (v.length <= 60)
         textSize(40);
-    textAlign(CENTER, CENTER);
-    text(v, width/4, height/2);
+    textAlign(RIGHT);
+    textStyle(BOLD);    
+    text(v, width/2 - 30, height/2);
 }
 
 function getChars() {
@@ -168,6 +169,7 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
         textAlign(CENTER, CENTER);
         if (ch == ' ') 
             ch = '_';
+        textStyle(NORMAL);  
         text(ch, window_width - rect_width_scale*sz - sz/2 + 30, 
             (upperCoord + lowerCoord) / 2);
     }
@@ -209,8 +211,8 @@ function draw() {
         posY += normYDiff * speedY * posX / pxScale;
     }
 
-    posX = max(posX, 0.00001);
-    posX = min(posX, 1);
+    posX = max(posX, 0.0000001);
+    posX = min(posX, 1 * pxScale);
     posY = max(posY, 0);
     posY = min(posY, 1);
 

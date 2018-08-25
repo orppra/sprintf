@@ -7,7 +7,7 @@ var height = Math.max( body.scrollHeight, body.offsetHeight,
                        html.clientHeight, html.scrollHeight, html.offsetHeight );
 const window_width = document.body.scrollWidth;
 const window_height = height;
-const rect_width_scale = 3;
+const rect_width_scale = 2;
 
 var pxScale = 1;
 
@@ -42,7 +42,7 @@ function setup() {
     frameRate(60);
     textSize(20);
     
-    /*probability_vector = [];
+    probability_vector = [];
     var sum = 0;
     for (var i = 0; i < vector_length; i++) {
         probability_vector[i] = random();
@@ -50,7 +50,7 @@ function setup() {
     }
     for (var i = 0; i < vector_length; i++) {
         probability_vector[i] /= sum;
-    }*/
+    }
 }
 
 function drawMarker() {
@@ -62,6 +62,16 @@ function drawMarker() {
 function drawValue(v) {
     fill(0);
     stroke(255);
+    v = v+v+v;
+    v= v+v.length;
+    if (v.length <= 15)
+        textSize(60);
+    if (v.length <= 20)
+        textSize(50);
+    if (v.length <= 25)
+        textSize(48);
+    if (v.length <= 60)
+        textSize(40);
     textAlign(CENTER, CENTER);
     text(v, width/4, height/2);
 }
@@ -117,9 +127,9 @@ function getProb(prevString) {
     //return [0.1, 0.4, 0.05, 0.2, 0.25];
 }
 
-function getProb(prevString) {
-    return probability_vector;
-}
+// function getProb(prevString) {
+//     return probability_vector;
+// }
 
 function getColours(chs) {
     var ret = [];
@@ -142,7 +152,9 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
     print(cl[0], cl[1], cl[2]);
     const c = color(cl[0], cl[1], cl[2]);
     fill(c);
-    noStroke()
+    noStroke();
+    
+    ellipse(width - rect_width_scale*sz, lowerCoord+sz/2, sz, sz);
     rect(width - rect_width_scale*sz, lowerCoord, rect_width_scale*sz, sz);
     stroke(0);
     if (width - rect_width_scale*sz < window_width / 2 && 
@@ -229,6 +241,7 @@ function draw() {
         value2 += intersecting[i][0];
     drawValue(value2);
 
+    textSize(26);
     text(posX, 200, 100);
 }
 

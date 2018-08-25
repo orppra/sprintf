@@ -1,6 +1,6 @@
 
 const speedX = 0.05;
-const speedY = 0.01;
+const speedY = 0.03;
 const window_width = 500;
 const window_height = 500;
 
@@ -9,6 +9,16 @@ var posY = 0.5;
 var zoom = 1;
 var bgColour = [0, 0, 0];
 var value = "";
+
+fetch(
+    'http://localhost:5000/'
+).then(function(response){
+    return response.json();
+}).then(function(data){
+    console.log(data);
+}).catch(function(error){
+    console.log(error);
+});
 
 // The statements in the setup() function 
 // execute once when the program begins
@@ -36,7 +46,7 @@ function getProb(prevString) {
 }
 
 function getChars() {
-    return ['a', 'b', 'c', 'd', 'e'];
+    return 'abcdefghijklmnopqrstuvwxyz,.\'"-'.split('');
 }
 
 var chars = getChars();
@@ -106,7 +116,7 @@ function draw() {
     var midY = window_height / 2;
     
     posX -= normXDiff * speedX * posX;
-    posY += normYDiff * speedY;
+    posY += normYDiff * speedY * posX;
 
     posX = max(posX, 0.001);
     posX = min(posX, 1);

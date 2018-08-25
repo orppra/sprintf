@@ -1,9 +1,13 @@
 from pprint import pprint
+from flask import Flask
+from flask_cors import CORS
+import json
 
 allCharList = []
 allCharList.extend(c for c in 'abcdefghijklmnopqrstuvwxyz')
-# allCharList.extend(c for c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 allCharList.extend(c for c in ',.\'"- ')
+
+print(''.join(allCharList))
 
 damping_const = 0.75
 threshold = 100
@@ -22,7 +26,7 @@ def build_tree(value, inc, depth, tree):
 
 
 def process_word(word, freq, result):
-    print(word, freq)
+    # print(word, freq)
     word_copy = word + ' '
     while word_copy != '':
         build_tree(word_copy, freq, 0, result)
@@ -57,7 +61,7 @@ def predict(past, tree):
             past[-1] in mTree['children'] and
             mTree['priority'] > threshold and
             mTree['children'][past[-1]]['children'] != {}):
-        print(past[-1])
+        # print(past[-1])
         mTree = mTree['children'][past[-1]]
         past = past[:-1]
 
@@ -89,3 +93,15 @@ def predict(past, tree):
 
 r = {}
 get_data(r)
+
+app = Flask('Server')
+CORS(app)
+
+
+@app.route('/', methods=['GET'])
+def get():
+    return json.dumps(r), 200
+
+
+if __name__ == '__main__':
+    app.run(port=5000)

@@ -9,14 +9,14 @@ const window_width = document.body.scrollWidth;
 const window_height = height;
 const rect_width_scale = 3;
 
-var pxScale = 100000;
+var pxScale = 1;
 
 var posX = 1 * pxScale;
 var posY = 0.5;
 var zoom = 1;
 var bgColour = [0, 0, 0];
 var value = "";
-var isMoveAllowed = true;
+var isMoveAllowed = false;
 var vector_length = 31;
 var probability_vector;
 var param_data = null;
@@ -41,7 +41,7 @@ function setup() {
     frameRate(60);
     textSize(20);
     
-    probability_vector = [];
+    /*probability_vector = [];
     var sum = 0;
     for (var i = 0; i < vector_length; i++) {
         probability_vector[i] = random();
@@ -49,7 +49,7 @@ function setup() {
     }
     for (var i = 0; i < vector_length; i++) {
         probability_vector[i] /= sum;
-    }
+    }*/
 }
 
 function drawMarker() {
@@ -65,7 +65,7 @@ function drawValue(v) {
 }
 
 function getChars() {
-    return 'abcdefghijklmnopqrstuvwxyz ,.\'"-'.split('');
+    return 'abcdefghijklmnopqrstuvwxyz .\'"-'.split('');
 }
 
 var chars = getChars();
@@ -85,16 +85,19 @@ function getProb(prevString) {
     var threshold = 100.0;
     var lastChar = prevString[prevString.length - 1];
     var d = param_data[lastChar];
+    console.log(d);
     prevString = prevString.substring(0, prevString.length - 1);
     lastChar = prevString[prevString.length - 1];
     while (prevString != "" &&
             lastChar != ' ' &&
             lastChar in d['children'] &&
             d['priority'] > threshold &&
-            ' ' in d['children'][lastChar]['children']) {
+            d['children'][lastChar]['children'] != null &&
+            d['children'][lastChar]['children'] != {}) {
         d = d['children'][lastChar];
         prevString = prevString.substring(0, prevString.length - 1);
         lastChar = prevString[prevString.length - 1];
+        console.log(d);
     }
     for (var i = 0; i < chars.length; i++)
         ret[i] = d['priority'] / 100.0;
@@ -135,7 +138,7 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
     var sz = upperCoord - lowerCoord;
     fill(cl[0], cl[1], cl[2]);
     rect(width - rect_width_scale*sz, lowerCoord, rect_width_scale*sz, sz);
-    if (width - sz < window_width / 2 && 
+    if (width - rect_width_scale*sz < window_width / 2 && 
         lowerCoord < window_height / 2 &&
         window_height / 2 < lowerCoord + sz) {
         listOfIntersecting.push([ch, lowerCoord, upperCoord, cl]);
@@ -145,7 +148,7 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
         textAlign(CENTER, CENTER);
         if (ch == ' ') 
             ch = '_';
-        text(ch, window_width - sz + 10, 
+        text(ch, window_width - rect_width_scale*sz * 0.9, 
             (upperCoord + lowerCoord) / 2);
     }
 }
@@ -155,7 +158,8 @@ var threshold = 0
 function drawBox(lowerCoord, upperCoord, txt, listOfIntersecting) {
     if (upperCoord < 0 || lowerCoord > window_height) return;
     var height = upperCoord - lowerCoord;
-    if (height < 100) return;
+    if (height < 100 || isNaN(height)) return;
+    console.log(height);
     var ps = getProb(txt);
     var prev = 0;
     for (var i = 0; i < ps.length; i++) {
@@ -181,17 +185,12 @@ function draw() {
     var normYDiff = mouseY / window_height - 0.5;
     var midY = window_height / 2;
     
-<<<<<<< HEAD
-    posX -= normXDiff * speedX * posX;
-    posY += normYDiff * speedY * posX / pxScale;
-=======
     if (isMoveAllowed) {
         posX -= normXDiff * speedX * posX;
-        posY += normYDiff * speedY * posX;
+        posY += normYDiff * speedY * posX / pxScale;
     }
->>>>>>> 56909fe7a612edd8963da5f84fbd8cbf0f55fa74
 
-    posX = max(posX, 0.00000001);
+    posX = max(posX, 0.0000000000001);
     posX = min(posX, 1);
     posY = max(posY, 0);
     posY = min(posY, 1);

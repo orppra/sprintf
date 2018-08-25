@@ -6,7 +6,7 @@ const window_height = 500;
 
 var pxScale = 100000;
 
-var posX = 1;
+var posX = 1 * pxScale;
 var posY = 0.5;
 var zoom = 1;
 var bgColour = [0, 0, 0];
@@ -160,7 +160,7 @@ function draw() {
     var midY = window_height / 2;
     
     posX -= normXDiff * speedX * posX;
-    posY += normYDiff * speedY * posX;
+    posY += normYDiff * speedY * posX / pxScale;
 
     posX = max(posX, 0.001);
     posX = min(posX, 1);
@@ -169,8 +169,8 @@ function draw() {
 
     var intersecting = [];
     drawBox(
-        window_height*(-posY*(1-posX)/posX),
-        window_height*(1+((1-posY)*(1-posX)/posX)), 
+        window_height*(-posY*(pxScale-posX)/posX),
+        window_height*(1+((1-posY)*(pxScale-posX)/posX)), 
         value, intersecting);
 
     ellipse(window_width / 2, window_height / 2, 15, 15);
@@ -182,8 +182,8 @@ function draw() {
         bgColour = intersecting[0][3];
         var lb = intersecting[0][1];
         var ub = intersecting[0][2];
-        posX = window_height / (ub - lb);
-        posY = -lb * posX / window_height / (1 - posX);
+        posX = window_height / (ub - lb) * pxScale;
+        posY = -lb * posX / window_height / (pxScale - posX);
         intersecting.shift();
     }
 

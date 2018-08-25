@@ -14,7 +14,7 @@ var pxScale = 100000;
 var posX = 1;
 var posY = 0.5;
 var zoom = 1;
-var bgColour = [0, 0, 0];
+var bgColour = [255, 255, 255];
 var value = "";
 var isMoveAllowed = true;
 var vector_length = 31;
@@ -37,7 +37,8 @@ fetch(
 function setup() {
     // createCanvas must be the first statement
     createCanvas(window_width, window_height);  
-    stroke(255);     // Set line drawing color to white
+    stroke(0);     // Set line drawing color to white
+    fill(0)
     frameRate(60);
     textSize(20);
     
@@ -59,7 +60,8 @@ function drawMarker() {
 }
 
 function drawValue(v) {
-    fill(255)
+    fill(0);
+    stroke(255);
     textAlign(CENTER, CENTER);
     text(v, width/4, height/2);
 }
@@ -112,17 +114,17 @@ function getProb(prevString) {
     //return [0.1, 0.4, 0.05, 0.2, 0.25];
 }
 
-// function getProb(prevString) {
-//     return probability_vector;
-// }
+function getProb(prevString) {
+    return probability_vector;
+}
 
 function getColours(chs) {
     var ret = [];
     for (var i = 0; i < chs.length; i++) {
         ret.push([
-            Math.random() * 120,
-            Math.random() * 120,
-            Math.random() * 120]);
+            Math.round(Math.random() * 360), // [0, 360]
+            Math.round(Math.random() * 56 + 42), // [42, 98]
+            Math.round(Math.random() * 40 + 130)]); // [40, 90]
     }
     return ret;
 }
@@ -133,8 +135,13 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
     if (upperCoord < 0 || lowerCoord > window_height) return;
 
     var sz = upperCoord - lowerCoord;
-    fill(cl[0], cl[1], cl[2]);
+    colorMode(HSL, 360, 255, 255);
+    print(cl[0], cl[1], cl[2]);
+    const c = color(cl[0], cl[1], cl[2]);
+    fill(c);
+    noStroke()
     rect(width - rect_width_scale*sz, lowerCoord, rect_width_scale*sz, sz);
+    stroke(0);
     if (width - sz < window_width / 2 && 
         lowerCoord < window_height / 2 &&
         window_height / 2 < lowerCoord + sz) {
@@ -145,7 +152,7 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
         textAlign(CENTER, CENTER);
         if (ch == ' ') 
             ch = '_';
-        text(ch, window_width - sz + 10, 
+        text(ch, window_width - 3*rect_width_scale*sz/4, 
             (upperCoord + lowerCoord) / 2);
     }
 }
@@ -197,6 +204,7 @@ function draw() {
         window_height*(1+((1-posY)*(1-posX)/posX)), 
         value, intersecting);
 
+    fill(0);
     ellipse(window_width / 2, window_height / 2, 15, 15);
     line(window_width / 2, window_height / 2, mouseX, mouseY);
     

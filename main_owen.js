@@ -9,7 +9,7 @@ const window_width = document.body.scrollWidth;
 const window_height = height;
 const rect_width_scale = 2;
 
-var pxScale = 1;
+var pxScale = 10000;
 
 var posX = 1 * pxScale;
 var posY = 0.5;
@@ -191,8 +191,8 @@ function draw() {
         posY += normYDiff * speedY * posX / pxScale;
     }
 
-    posX = max(posX, 0.0000000000001);
-    posX = min(posX, 1);
+    posX = max(posX, 0.0000001);
+    posX = min(posX, 1 * pxScale);
     posY = max(posY, 0);
     posY = min(posY, 1);
 

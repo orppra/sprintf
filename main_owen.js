@@ -1,16 +1,16 @@
-
 const speedX = 0.15;
 const speedY = 0.15;
-const window_width = document.body.scrollWidth;
 var body = document.body,
     html = document.documentElement;
 
 var height = Math.max( body.scrollHeight, body.offsetHeight, 
                        html.clientHeight, html.scrollHeight, html.offsetHeight );
+const window_width = document.body.scrollWidth;
 const window_height = height;
 const rect_width_scale = 3;
 
-var canvas = document.body.getElementsByTagName("#c")[0];
+var pxScale = 100000;
+
 var posX = 1;
 var posY = 0.5;
 var zoom = 1;
@@ -19,6 +19,7 @@ var value = "";
 var isMoveAllowed = true;
 var vector_length = 31;
 var probability_vector;
+var param_data = null;
 
 fetch(
     'http://localhost:5000/'
@@ -26,6 +27,7 @@ fetch(
     return response.json();
 }).then(function(data){
     console.log(data);
+    param_data = data;
 }).catch(function(error){
     console.log(error);
 });
@@ -62,15 +64,57 @@ function drawValue(v) {
     text(v, width/4, height/2);
 }
 
-function getProb(prevString) {
-    return probability_vector;
-}
-
 function getChars() {
     return 'abcdefghijklmnopqrstuvwxyz ,.\'"-'.split('');
 }
 
 var chars = getChars();
+
+function getProb(prevString) {
+    if (param_data == null) return [];
+    console.log(prevString + "\n");
+
+    var ret = [];
+    for (var i = 0; i < chars.length; i++)
+        ret.push(0);
+    if (prevString === "") {
+        for (var i = 0; i < chars.length; i++)
+            ret[i] = 1.0 / chars.length;
+        return ret;
+    }
+    var threshold = 100.0;
+    var lastChar = prevString[prevString.length - 1];
+    var d = param_data[lastChar];
+    prevString = prevString.substring(0, prevString.length - 1);
+    lastChar = prevString[prevString.length - 1];
+    while (prevString != "" &&
+            lastChar != ' ' &&
+            lastChar in d['children'] &&
+            d['priority'] > threshold &&
+            ' ' in d['children'][lastChar]['children']) {
+        d = d['children'][lastChar];
+        prevString = prevString.substring(0, prevString.length - 1);
+        lastChar = prevString[prevString.length - 1];
+    }
+    for (var i = 0; i < chars.length; i++)
+        ret[i] = d['priority'] / 100.0;
+    for (var i = 0; i < chars.length; i++) {
+        if (chars[i] in d['children']) {
+            ret[i] += d['children'][chars[i]]['priority'];
+        }
+    }
+    var sum = 0;
+    for (var i = 0; i < chars.length; i++)
+        sum += ret[i];
+    for (var i = 0; i < chars.length; i++)
+        ret[i] /= sum;
+    return ret;
+    //return [0.1, 0.4, 0.05, 0.2, 0.25];
+}
+
+// function getProb(prevString) {
+//     return probability_vector;
+// }
 
 function getColours(chs) {
     var ret = [];
@@ -99,6 +143,8 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
     if (sz > 20) {
         fill(255);
         textAlign(CENTER, CENTER);
+        if (ch == ' ') 
+            ch = '_';
         text(ch, window_width - sz + 10, 
             (upperCoord + lowerCoord) / 2);
     }
@@ -106,11 +152,11 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
 
 var threshold = 0
 
-function drawBox(lowerCoord, upperCoord, ps, listOfIntersecting) {
+function drawBox(lowerCoord, upperCoord, txt, listOfIntersecting) {
     if (upperCoord < 0 || lowerCoord > window_height) return;
-
     var height = upperCoord - lowerCoord;
-    if (height < 50) return;
+    if (height < 100) return;
+    var ps = getProb(txt);
     var prev = 0;
     for (var i = 0; i < ps.length; i++) {
         var lc = lowerCoord + prev; // new lower coordinate
@@ -119,7 +165,7 @@ function drawBox(lowerCoord, upperCoord, ps, listOfIntersecting) {
             ret = [lc, lc + ln, i];
         drawRect(lc, lc + ln, chars[i], cols[i], listOfIntersecting);
         // compute nested list and recurse
-        drawBox(lc, lc + ln, getProb(), listOfIntersecting);
+        drawBox(lc, lc + ln, txt + chars[i], listOfIntersecting);
         prev += ln;
     }
 }
@@ -144,18 +190,15 @@ function draw() {
     posX = min(posX, 1);
     posY = max(posY, 0);
     posY = min(posY, 1);
-    //console.log(posX, posY);
 
-    var ps = getProb(); // probabilities
     var intersecting = [];
     drawBox(
         window_height*(-posY*(1-posX)/posX),
         window_height*(1+((1-posY)*(1-posX)/posX)), 
-        ps, intersecting);
+        value, intersecting);
 
     ellipse(window_width / 2, window_height / 2, 15, 15);
     line(window_width / 2, window_height / 2, mouseX, mouseY);
-    //console.log(value, intersecting.length);
     
     if (intersecting.length > 3) {
         // move to new

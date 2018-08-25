@@ -7,13 +7,12 @@ var height = Math.max( body.scrollHeight, body.offsetHeight,
                        html.clientHeight, html.scrollHeight, html.offsetHeight );
 const window_width = document.body.scrollWidth;
 const window_height = height;
-const rect_width_scale = 3;
+const rect_width_scale = 2;
 
 var pxScale = 1;
 
 var posX = 1 * pxScale;
 var posY = 0.5;
-var zoom = 1;
 var bgColour = [255, 255, 255];
 var value = "";
 var isMoveAllowed = false;
@@ -39,7 +38,7 @@ function setup() {
     createCanvas(window_width, window_height);  
     stroke(0);     // Set line drawing color to white
     fill(0)
-    frameRate(60);
+    frameRate(40);
     textSize(20);
     
     /*probability_vector = [];
@@ -67,7 +66,7 @@ function drawValue(v) {
 }
 
 function getChars() {
-    return 'abcdefghijklmnopqrstuvwxyz .\'"-'.split('');
+    return 'abcdefghijklmnopqrstuvwxyz .\'-'.split('');
 }
 
 var chars = getChars();
@@ -80,32 +79,27 @@ function getProb(prevString) {
     for (var i = 0; i < chars.length; i++)
         ret.push(0);
     if (prevString === "") {
-        for (var i = 0; i < chars.length; i++)
-            ret[i] = 1.0 / chars.length;
-        return ret;
+        prevString = " ";
     }
     var threshold = 100.0;
     var lastChar = prevString[prevString.length - 1];
     var d = param_data[lastChar];
-    console.log(d);
     prevString = prevString.substring(0, prevString.length - 1);
     lastChar = prevString[prevString.length - 1];
     while (prevString != "" &&
-            lastChar != ' ' &&
             lastChar in d['children'] &&
-            d['priority'] > threshold &&
+            d['sum_priority'] > threshold &&
             d['children'][lastChar]['children'] != null &&
             d['children'][lastChar]['children'] != {}) {
         d = d['children'][lastChar];
         prevString = prevString.substring(0, prevString.length - 1);
         lastChar = prevString[prevString.length - 1];
-        console.log(d);
     }
     for (var i = 0; i < chars.length; i++)
-        ret[i] = d['priority'] / 100.0;
+        ret[i] = d['sum_priority'] / 100.0;
     for (var i = 0; i < chars.length; i++) {
-        if (chars[i] in d['children']) {
-            ret[i] += d['children'][chars[i]]['priority'];
+        if (chars[i] in d['priority']) {
+            ret[i] += d['priority'][chars[i]];
         }
     }
     var sum = 0;
@@ -117,9 +111,9 @@ function getProb(prevString) {
     //return [0.1, 0.4, 0.05, 0.2, 0.25];
 }
 
-function getProb(prevString) {
+/*function getProb(prevString) {
     return probability_vector;
-}
+}*/
 
 function getColours(chs) {
     var ret = [];

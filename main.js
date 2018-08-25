@@ -33,6 +33,14 @@ fetch(
     console.log(error);
 });
 
+
+function assert(cond, msg) {
+    if (!cond) {
+        remove();
+        alert(msg);
+    }
+}
+
 // The statements in the setup() function 
 // execute once when the program begins
 function setup() {
@@ -87,7 +95,7 @@ function getProb(prevString) {
 
     var ret = [];
     for (var i = 0; i < chars.length; i++)
-        ret.push(0);
+        ret.push(1);
     if (prevString === "") {
         prevString = " ";
     }
@@ -106,7 +114,7 @@ function getProb(prevString) {
         lastChar = prevString[prevString.length - 1];
     }
     for (var i = 0; i < chars.length; i++)
-        ret[i] = d['sum_priority'] / 100.0;
+        ret[i] += d['sum_priority'] / 100.0;
     for (var i = 0; i < chars.length; i++) {
         if (chars[i] in d['priority']) {
             ret[i] += d['priority'][chars[i]];
@@ -179,6 +187,7 @@ var threshold = 0
 
 function drawBox(lowerCoord, upperCoord, txt, listOfIntersecting) {
     if (upperCoord < 0 || lowerCoord > window_height) return;
+    console.log(upperCoord, lowerCoord);
     var height = upperCoord - lowerCoord;
     if (height < 100 || isNaN(height)) return;
     var ps = getProb(txt);
@@ -232,9 +241,7 @@ function draw() {
     p3 = [mouseX + Math.cos(angle+Math.PI/2) * triangle_size, mouseY + Math.sin(angle+Math.PI/2) * triangle_size];
     stroke(0);
     fill(0);
-    // console.log(p1);
-    // console.log(p2);
-    // console.log(p3);
+
     triangle(p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]);
     console.log(angle-Math.PI/2);
 

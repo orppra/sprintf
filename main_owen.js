@@ -1,8 +1,13 @@
+const speedX = 0.15;
+const speedY = 0.15;
+var body = document.body,
+    html = document.documentElement;
 
-const speedX = 0.05;
-const speedY = 0.03;
-const window_width = 500;
-const window_height = 500;
+var height = Math.max( body.scrollHeight, body.offsetHeight, 
+                       html.clientHeight, html.scrollHeight, html.offsetHeight );
+const window_width = document.body.scrollWidth;
+const window_height = height;
+const rect_width_scale = 3;
 
 var pxScale = 100000;
 
@@ -11,6 +16,9 @@ var posY = 0.5;
 var zoom = 1;
 var bgColour = [0, 0, 0];
 var value = "";
+var isMoveAllowed = true;
+var vector_length = 31;
+var probability_vector;
 var param_data = null;
 
 fetch(
@@ -27,10 +35,21 @@ fetch(
 // The statements in the setup() function 
 // execute once when the program begins
 function setup() {
-	// createCanvas must be the first statement
+    // createCanvas must be the first statement
     createCanvas(window_width, window_height);  
     stroke(255);     // Set line drawing color to white
-    frameRate(10);
+    frameRate(60);
+    textSize(20);
+    
+    probability_vector = [];
+    var sum = 0;
+    for (var i = 0; i < vector_length; i++) {
+        probability_vector[i] = random();
+        sum += probability_vector[i];
+    }
+    for (var i = 0; i < vector_length; i++) {
+        probability_vector[i] /= sum;
+    }
 }
 
 function drawMarker() {
@@ -41,12 +60,12 @@ function drawMarker() {
 
 function drawValue(v) {
     fill(255)
-    textAlign(LEFT, CENTER);
-    text(v, 5, 10);
+    textAlign(CENTER, CENTER);
+    text(v, width/4, height/2);
 }
 
 function getChars() {
-    return 'abcdefghijklmnopqrstuvwxyz,.\'"-'.split('');
+    return 'abcdefghijklmnopqrstuvwxyz ,.\'"-'.split('');
 }
 
 var chars = getChars();
@@ -93,6 +112,10 @@ function getProb(prevString) {
     //return [0.1, 0.4, 0.05, 0.2, 0.25];
 }
 
+// function getProb(prevString) {
+//     return probability_vector;
+// }
+
 function getColours(chs) {
     var ret = [];
     for (var i = 0; i < chs.length; i++) {
@@ -111,7 +134,7 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
 
     var sz = upperCoord - lowerCoord;
     fill(cl[0], cl[1], cl[2]);
-    rect(width - sz, lowerCoord, sz, sz);
+    rect(width - rect_width_scale*sz, lowerCoord, rect_width_scale*sz, sz);
     if (width - sz < window_width / 2 && 
         lowerCoord < window_height / 2 &&
         window_height / 2 < lowerCoord + sz) {
@@ -152,17 +175,23 @@ function drawBox(lowerCoord, upperCoord, txt, listOfIntersecting) {
 // sequence and after the last line is read, the first 
 // line is executed again.
 function draw() {
-    
     background(bgColour[0], bgColour[1], bgColour[2]);
     
     var normXDiff = mouseX / window_width - 0.5;
     var normYDiff = mouseY / window_height - 0.5;
     var midY = window_height / 2;
     
+<<<<<<< HEAD
     posX -= normXDiff * speedX * posX;
     posY += normYDiff * speedY * posX / pxScale;
+=======
+    if (isMoveAllowed) {
+        posX -= normXDiff * speedX * posX;
+        posY += normYDiff * speedY * posX;
+    }
+>>>>>>> 56909fe7a612edd8963da5f84fbd8cbf0f55fa74
 
-    posX = max(posX, 0.001);
+    posX = max(posX, 0.00000001);
     posX = min(posX, 1);
     posY = max(posY, 0);
     posY = min(posY, 1);
@@ -176,7 +205,7 @@ function draw() {
     ellipse(window_width / 2, window_height / 2, 15, 15);
     line(window_width / 2, window_height / 2, mouseX, mouseY);
     
-    if (intersecting.length > 4) {
+    if (intersecting.length > 3) {
         // move to new
         value += intersecting[0][0];
         bgColour = intersecting[0][3];
@@ -193,4 +222,10 @@ function draw() {
         value2 += intersecting[i][0];
     drawValue(value2);
 
+    text(posX, 200, 100);
+}
+
+
+function mousePressed() {
+    isMoveAllowed = !isMoveAllowed;
 }

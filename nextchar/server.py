@@ -1,8 +1,5 @@
 from flask import Flask, request
 from pprint import pprint
-import sys
-
-sys.setrecursionlimit(100000)
 
 app = Flask('Server')
 allCharList = []
@@ -10,51 +7,48 @@ allCharList.extend(c for c in 'abcdefghijklmnopqrstuvwxyz')
 allCharList.extend(c for c in 'ABCDEFGHIJKLMNOPQRSTUVWXYZ')
 allCharList.extend(c for c in ',./\'"- ')
 
-
-tree = {}
-threshold = 100
+gram2 = {}
 
 
-def buildTree(line, n, max_n, treeDict):
-    if n >= max_n:
-        return
-    if line == '':
-        return
-    if line[-1] not in treeDict:
-        treeDict[line[-1]] = (0, {})
-    treeDict[line[-1]] = (treeDict[line[-1]][0] + 1, treeDict[line[-1]][1])
-    buildTree(line[:-1], n + 1, max_n, treeDict[line[-1]][1])
-    if n == 0:
-        buildTree(line[:-1], n, max_n, treeDict)
+def buildNGram(line, n, store):
+    curr = []
+    for c in line:
+        if len(curr) < n:
+            curr.append(c)
+            continue
+        d = store
+        for ch in curr:
+            if ch not in d:
+                d[ch] = {}
+            d = d[ch]
+        if c not in d:
+            d[c] = 0
+        d[c] += 1
+        curr.append(c)
+        curr.pop(0)
+    return store
 
 
 def predict(past):
     result = {}
     for c in allCharList:
         result[c] = 1
-
-    mTree = tree[past[-1]]
-    past = past[:-1]
-    while (past != '' and
-            past[-1] != ' ' and
-            past[-1] in mTree[1] and
-            mTree[0] > threshold and
-            mTree[1][past[-1]][1] != {}):
-        print(past[-1])
-        mTree = mTree[1][past[-1]]
-        past = past[:-1]
-
-    print(mTree[1])
-    for k, v in mTree[1].items():
+    gm = gram2
+    for i in range(2, 0, -1):
+        if past[-i] in gm:
+            gm = gm[past[-i]]
+        else:
+            gm = {}
+    pprint(gm)
+    for k, v in gm.items():
         if k in result:
-            result[k] += v[0]
-    for k in result:
-        result[k] = min(50, result[k])
+            result[k] += v
     sum = 0
     for k, v in result.items():
         sum += v
     for k, v in result.items():
         result[k] /= sum
+    pprint(result)
     slist = []
     for k, v in result.items():
         slist.append((v, k))
@@ -68,18 +62,14 @@ def predict(past):
 def readFile(filename):
     with open(filename, 'r') as f:
         lines = f.readlines()
-        for line in lines:
-            line = line.lower()
-            # print(l)
-            buildTree(line, 0, 4, tree)
+        for l in lines:
+            print(l)
+            buildNGram(l, 2, gram2)
+        # pprint(gram2)
 
 
 readFile('../data/training_english_GB.txt')
-readFile('../data/training_phrases2_GB.txt')
-# readFile('../data/blogs_parsed.txt')
-predict('hell')
-predict('encount')
-# pprint(tree['i'])
+predict('be')
 
 
 @app.route('/', methods=['GET'])

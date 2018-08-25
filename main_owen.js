@@ -1,5 +1,7 @@
 const speedX = 0.15;
 const speedY = 0.15;
+const shadowOffsetX = 0.1;
+const shadowOffsetY = 0.04;
 var body = document.body,
     html = document.documentElement;
 
@@ -81,7 +83,6 @@ var chars = getChars();
 
 function getProb(prevString) {
     if (param_data == null) return [];
-    console.log(prevString + "\n");
 
     var ret = [];
     for (var i = 0; i < chars.length; i++)
@@ -140,14 +141,22 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
     if (upperCoord < 0 || lowerCoord > window_height) return;
 
     var sz = upperCoord - lowerCoord;
+
     colorMode(HSL, 360, 255, 255);
-    print(cl[0], cl[1], cl[2]);
     const c = color(cl[0], cl[1], cl[2]);
+    const sc = color(cl[0], cl[1], cl[2]-50);
+    // draw shadow
+    fill(sc)
+    noStroke();
+    ellipse(width - rect_width_scale*sz + sz*shadowOffsetX, lowerCoord+sz/2 + sz*shadowOffsetY, sz, sz);
+    rect(width - rect_width_scale*sz + sz*shadowOffsetX, lowerCoord + sz*shadowOffsetY, rect_width_scale*sz, sz);
+
+    // draw rect
     fill(c);
     noStroke();
-    
     ellipse(width - rect_width_scale*sz, lowerCoord+sz/2, sz, sz);
     rect(width - rect_width_scale*sz, lowerCoord, rect_width_scale*sz, sz);
+
     stroke(0);
     if (width - rect_width_scale*sz < window_width / 2 && 
         lowerCoord < window_height / 2 &&
@@ -170,7 +179,6 @@ function drawBox(lowerCoord, upperCoord, txt, listOfIntersecting) {
     if (upperCoord < 0 || lowerCoord > window_height) return;
     var height = upperCoord - lowerCoord;
     if (height < 100 || isNaN(height)) return;
-    console.log(height);
     var ps = getProb(txt);
     var prev = 0;
     for (var i = 0; i < ps.length; i++) {
@@ -201,7 +209,7 @@ function draw() {
         posY += normYDiff * speedY * posX / pxScale;
     }
 
-    posX = max(posX, 0.0000000000001);
+    posX = max(posX, 0.00001);
     posX = min(posX, 1);
     posY = max(posY, 0);
     posY = min(posY, 1);
@@ -213,8 +221,21 @@ function draw() {
         value, intersecting);
 
     fill(0);
-    ellipse(window_width / 2, window_height / 2, 15, 15);
     line(window_width / 2, window_height / 2, mouseX, mouseY);
+
+    angle = Math.atan2(mouseY-window_height/2, mouseX-window_width/2);
+    triangle_size = 10; 
+    p1 = [mouseX + Math.cos(angle) * triangle_size, mouseY + Math.sin(angle) * triangle_size];
+    p2 = [mouseX + Math.cos(angle-Math.PI/2) * triangle_size, mouseY + Math.sin(angle-Math.PI/2) * triangle_size];
+    p3 = [mouseX + Math.cos(angle+Math.PI/2) * triangle_size, mouseY + Math.sin(angle+Math.PI/2) * triangle_size];
+    stroke(0);
+    fill(0);
+    // console.log(p1);
+    // console.log(p2);
+    // console.log(p3);
+    triangle(p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]);
+    console.log(angle-Math.PI/2);
+
     
     if (intersecting.length > 3) {
         // move to new
@@ -233,8 +254,8 @@ function draw() {
         value2 += intersecting[i][0];
     drawValue(value2);
 
-    textSize(26);
-    text(posX, 200, 100);
+    // textSize(26);
+    // text(posX, 200, 100);
 }
 
 

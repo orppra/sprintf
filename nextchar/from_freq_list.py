@@ -92,6 +92,8 @@ def predict(past, tree):
 
 
 r = {}
+for c in allCharList:
+    r[c] = {'priority': 0, 'children': {}}
 get_data(r)
 
 app = Flask('Server')

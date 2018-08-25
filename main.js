@@ -21,6 +21,8 @@ var isMoveAllowed = false;
 var vector_length = 31;
 var probability_vector;
 var param_data = null;
+var before_length = 0;
+var keypressSound;
 
 fetch(
     'http://localhost:5000/'
@@ -41,6 +43,10 @@ function assert(cond, msg) {
     }
 }
 
+function preload() {
+    soundFormats('mp3', 'ogg');
+    keypressSound = loadSound('keypress.mp3');
+}
 // The statements in the setup() function 
 // execute once when the program begins
 function setup() {
@@ -50,6 +56,7 @@ function setup() {
     fill(0)
     frameRate(40);
     textSize(20);
+    textFont('Courier New');
     
     probability_vector = [];
     var sum = 0;
@@ -69,6 +76,11 @@ function drawMarker() {
 }
 
 function drawValue(v) {
+    if (v.length > before_length) {
+        keypressSound.setVolume(2.0);
+        keypressSound.play();
+    }
+
     fill(0);
     stroke(255);
     if (v.length <= 15)
@@ -82,6 +94,7 @@ function drawValue(v) {
     textAlign(RIGHT);
     textStyle(BOLD);    
     text(v, width/2 - 30, height/2);
+    before_length = v.length;
 }
 
 function getChars() {
@@ -126,12 +139,7 @@ function getProb(prevString) {
     for (var i = 0; i < chars.length; i++)
         ret[i] /= sum;
     return ret;
-    //return [0.1, 0.4, 0.05, 0.2, 0.25];
 }
-
-// function getProb(prevString) {
-//     return probability_vector;
-// }
 
 function getColours(chs) {
     var ret = [];
@@ -183,11 +191,10 @@ function drawRect(lowerCoord, upperCoord, ch, cl, listOfIntersecting) {
     }
 }
 
-var threshold = 0
+var threshold = 0;
 
 function drawBox(lowerCoord, upperCoord, txt, listOfIntersecting) {
     if (upperCoord < 0 || lowerCoord > window_height) return;
-    console.log(upperCoord, lowerCoord);
     var height = upperCoord - lowerCoord;
     if (height < 100 || isNaN(height)) return;
     var ps = getProb(txt);
@@ -233,18 +240,7 @@ function draw() {
 
     fill(0);
     line(window_width / 2, window_height / 2, mouseX, mouseY);
-
-    angle = Math.atan2(mouseY-window_height/2, mouseX-window_width/2);
-    triangle_size = 10; 
-    p1 = [mouseX + Math.cos(angle) * triangle_size, mouseY + Math.sin(angle) * triangle_size];
-    p2 = [mouseX + Math.cos(angle-Math.PI/2) * triangle_size, mouseY + Math.sin(angle-Math.PI/2) * triangle_size];
-    p3 = [mouseX + Math.cos(angle+Math.PI/2) * triangle_size, mouseY + Math.sin(angle+Math.PI/2) * triangle_size];
-    stroke(0);
-    fill(0);
-
-    triangle(p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]);
-    console.log(angle-Math.PI/2);
-
+    drawArrowHead();
     
     if (intersecting.length > 3) {
         // move to new
@@ -267,6 +263,17 @@ function draw() {
     // text(posX, 200, 100);
 }
 
+function drawArrowHead() {
+    angle = Math.atan2(mouseY-window_height/2, mouseX-window_width/2);
+    triangle_size = 10; 
+    p1 = [mouseX + Math.cos(angle) * triangle_size, mouseY + Math.sin(angle) * triangle_size];
+    p2 = [mouseX + Math.cos(angle-Math.PI/2) * triangle_size, mouseY + Math.sin(angle-Math.PI/2) * triangle_size];
+    p3 = [mouseX + Math.cos(angle+Math.PI/2) * triangle_size, mouseY + Math.sin(angle+Math.PI/2) * triangle_size];
+    stroke(0);
+    fill(0);
+
+    triangle(p1[0], p1[1], p2[0], p2[1], p3[0], p3[1]);
+}
 
 function mousePressed() {
     isMoveAllowed = !isMoveAllowed;
